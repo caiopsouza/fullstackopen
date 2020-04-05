@@ -1,0 +1,50 @@
+title Exercise 0.6: New note
+
+participant user
+participant browser
+participant onsubmit
+participant server
+
+user->+browser: User requests page
+
+par Load /spa. Based on exercise 0.4 (par is used just for grouping)
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/spa
+server-->-browser: HTML-code
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.css
+server-->-browser: main.css
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/spa.js
+server-->-browser: spa.js
+
+note over browser:
+Starts executing js-code that
+requests JSON data from server 
+end note
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/data.json
+server-->-browser: [{ content: "HTML is easy", date: "2019-05-23" }, ...]
+
+note over browser:
+Executes the event handler
+that renders notes to display
+end note
+
+end
+
+browser-->-user: Page is ready for use
+
+user->+browser: Types a note and press "save"
+
+browser->*+onsubmit: Starts form's callback\nfunction "onsubmit"
+
+onsubmit->browser: Adds new note with user's content
+
+onsubmit->server: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note_spa\nPost data: {"content":<<what user typed>>,"date":<<current date>>}
+onsubmit-->-browser:
+server-->onsubmit: HTTP Response: Code=201 Created
+note over onsubmit: Response is ignored
+
+note over browser: Page is ready for use\nwith new note present
+browser-->-user:

@@ -1,0 +1,45 @@
+title Exercise 0.4: New note
+
+user->+browser: User requests page
+
+par Load /notes. Based on exercise 0.4 (par is used just for grouping)
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/notes
+server-->-browser: HTML-code
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.css
+server-->-browser: main.css
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.js
+server-->-browser: main.js
+
+note over browser:
+Starts executing js-code that
+requests JSON data from server 
+end note
+
+browser->+server: HTTP GET https://fullstack-exampleapp.herokuapp.com/data.json
+server-->-browser: [{ content: "HTML is easy", date: "2019-05-23" }, ...]
+
+note over browser:
+Executes the event handler
+that renders notes to display
+end note
+
+end
+
+browser-->-user: Page is ready for use
+
+user->+browser: Types a note and press "save"
+
+browser->+server: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note\nForm data: note=<what the user typed>
+note over server: Adds new note and current date to list
+server-->-browser: HTTP Response: Code=302 Found, Location=/notes
+
+note over browser,server:
+Repeats [Load /notes]
+data.json is now updated with the new note.
+end note
+
+note over browser: Page is ready for use\nwith new note present
+browser-->-user:

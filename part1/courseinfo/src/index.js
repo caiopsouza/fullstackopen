@@ -5,8 +5,8 @@ const Header = props => (
   <h1>{props.course}</h1>
 );
 
-const Part = props => (
-  <p>{props.name} {props.exercises}</p>
+const Part = ({ name, exercises }) => (
+  <p>{name} {exercises}</p>
 );
 
 const Content = props => (

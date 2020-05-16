@@ -58,6 +58,7 @@ const App = ({ phones }) => {
     }
 
     const person = {
+      id: persons.length + 1,
       name: newName,
       number: newNumber
     };

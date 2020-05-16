@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import Axios from 'axios';
 
 const Filter = ({ value, onChange }) => (
   <form onSubmit={e => e.preventDefault()}>
@@ -23,7 +24,7 @@ const Persons = ({ filter, persons }) => {
     <table>
       <tbody>
         {personsFiltered.map(person =>
-          <tr key={person.name}>
+          <tr key={person.id}>
             <td>{person.name}</td>
             <td>{person.number}</td>
           </tr>
@@ -33,18 +34,19 @@ const Persons = ({ filter, persons }) => {
   )
 }
 
-const App = () => {
+const App = ({ phones }) => {
   // Initial state
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456' },
-    { name: 'Ada Lovelace', number: '39-44-5323523' },
-    { name: 'Dan Abramov', number: '12-43-234345' },
-    { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ]);
+  const [persons, setPersons] = useState([]);
 
   const [filter, setFilter] = useState('');
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
+
+  useEffect(() => {
+    Axios
+      .get("http://localhost:3001/persons")
+      .then(({ data }) => setPersons(data));
+  }, []);
 
   // Add a new phone number to the list
   const addPhone = event => {

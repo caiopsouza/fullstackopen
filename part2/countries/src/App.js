@@ -7,7 +7,47 @@ const Filter = ({ value, onChange }) => (
   </form>
 );
 
+const Weather = ({ country }) => {
+  const [weather, setWeather] = useState('');
+
+  useEffect(() => {
+    const params = {
+      access_key: process.env.REACT_APP_API_KEY.trim(),
+      query: country.capital
+    }
+
+    Axios
+      .get('http://api.weatherstack.com/current', { params })
+      .then(({ data }) => {
+        const current = data.current;
+        console.log(current);
+
+        if (!current) {
+          setWeather(<h2>Weather unavailable in {country.capital}</h2>);
+          return;
+        }
+
+        setWeather(
+          <div>
+            <h2>Weather in {country.capital}</h2>
+
+            <div><b>temperature: </b>{current.temperature} Celcius</div>
+
+            {current.weather_icons.map((icon, i) => (
+              <img key={i} src={icon} alt={`${current.weather_descriptions[i]} icon`}></img>
+            ))}
+
+            <div><b>wind: </b>{current.wind_speed} mph direction {current.wind_dir}</div>
+          </div>
+        )
+      });
+  }, [country]);
+
+  return weather;
+}
+
 const Countries = ({ filter, setFilter, countries }) => {
+
   const countriesFiltered = countries.filter(p =>
     p.name.toLowerCase().includes(filter.toLowerCase())
   );
@@ -37,7 +77,7 @@ const Countries = ({ filter, setFilter, countries }) => {
         <div>capital {country.capital}</div>
         <div>population {country.population}</div>
 
-        <h1>languages</h1>
+        <h2>Spoken languages</h2>
         <ul>
           {country.languages.map(lang => (
             <li key={lang.iso639_1}>{lang.name}</li>
@@ -45,6 +85,8 @@ const Countries = ({ filter, setFilter, countries }) => {
         </ul>
 
         <img src={country.flag} alt={`Flag of ${country.name}`} style={{ maxHeight: "125px" }}></img>
+
+        <Weather country={country} />
       </div>
     );
   }

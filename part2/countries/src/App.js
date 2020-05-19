@@ -7,7 +7,7 @@ const Filter = ({ value, onChange }) => (
   </form>
 );
 
-const Countries = ({ filter, countries }) => {
+const Countries = ({ filter, setFilter, countries }) => {
   const countriesFiltered = countries.filter(p =>
     p.name.toLowerCase().includes(filter.toLowerCase())
   );
@@ -19,7 +19,10 @@ const Countries = ({ filter, countries }) => {
     return (
       <div>
         {countriesFiltered.map(country =>
-          <div key={country.numericCode}>{country.name}</div>
+          <div key={country.numericCode}>
+            {country.name}
+            <button onClick={() => setFilter(country.name)}>show</button>
+          </div>
         )}
       </div>
     )
@@ -62,7 +65,7 @@ const App = ({ phones }) => {
   return (
     <div>
       <Filter value={filter} onChange={setFilter} />
-      <Countries filter={filter} countries={countries} />
+      <Countries filter={filter} setFilter={setFilter} countries={countries} />
     </div>
   )
 }

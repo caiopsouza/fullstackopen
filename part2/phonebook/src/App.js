@@ -44,6 +44,7 @@ const App = ({ phones }) => {
 
   const setPersons = (persons) => setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)))
 
+  // Initial load from the server
   useEffect(() => {
     personService
       .getAll()
@@ -54,16 +55,28 @@ const App = ({ phones }) => {
   const addPhone = event => {
     event.preventDefault();
 
-    if (persons.find(({ name }) => name === newName)) {
-      alert(`${newName} is already added to phonebook`)
-      return;
-    }
-
     const person = {
       name: newName,
       number: newNumber
     };
 
+    const personMatch = persons.find(({ name }) => name === newName);
+
+    // Already exists. Just edit it.
+    if (personMatch) {
+      const shoudlReplace = window.confirm(`${person.name} is already added to phonebook, replace the old number with a new one?`);
+
+      if (shoudlReplace) {
+        personService
+          .update(personMatch.id, person)
+          .then(response => setPersons(persons.map(p => p.id === personMatch.id ? response.data : p)))
+          .catch(_ => alert('Error updating person in the phonebook. Please, try again later.'));
+      }
+
+      return;
+    }
+
+    // Doesn't exist. Add.
     personService
       .create(person)
       .then(response => setPersons(persons.concat(response.data)))

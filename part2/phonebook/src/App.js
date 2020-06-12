@@ -36,11 +36,12 @@ const Persons = ({ filter, persons }) => {
 
 const App = ({ phones }) => {
   // Initial state
-  const [persons, setPersons] = useState([]);
-
+  const [persons, setPersonsOriginal] = useState([]);
   const [filter, setFilter] = useState('');
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
+
+  const setPersons = (persons) => setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)))
 
   useEffect(() => {
     Axios
@@ -58,12 +59,14 @@ const App = ({ phones }) => {
     }
 
     const person = {
-      id: persons.length + 1,
       name: newName,
       number: newNumber
     };
 
-    setPersons(persons.concat(person));
+    Axios
+      .post('http://localhost:3001/persons', person)
+      .then(response => setPersons(persons.concat(response.data)))
+      .catch(_ => alert('Error adding person to phonebook. Please try again later.'));
   }
 
   return (

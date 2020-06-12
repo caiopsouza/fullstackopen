@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Axios from 'axios';
+import personService from './services/person'
 
 const Filter = ({ value, onChange }) => (
   <form onSubmit={e => e.preventDefault()}>
@@ -44,8 +44,8 @@ const App = ({ phones }) => {
   const setPersons = (persons) => setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)))
 
   useEffect(() => {
-    Axios
-      .get("http://localhost:3001/persons")
+    personService
+      .getAll()
       .then(({ data }) => setPersons(data));
   }, []);
 
@@ -63,8 +63,8 @@ const App = ({ phones }) => {
       number: newNumber
     };
 
-    Axios
-      .post('http://localhost:3001/persons', person)
+    personService
+      .create(person)
       .then(response => setPersons(persons.concat(response.data)))
       .catch(_ => alert('Error adding person to phonebook. Please try again later.'));
   }

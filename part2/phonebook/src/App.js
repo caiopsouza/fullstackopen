@@ -15,7 +15,7 @@ const PersonForm = ({ onSubmit, name, onChangeName, number, onChangeNumber }) =>
   </form>
 )
 
-const Persons = ({ filter, persons }) => {
+const Persons = ({ filter, persons, onDelete }) => {
   const personsFiltered = persons.filter(p =>
     p.name.toLowerCase().includes(filter.toLowerCase())
   );
@@ -27,6 +27,7 @@ const Persons = ({ filter, persons }) => {
           <tr key={person.id}>
             <td>{person.name}</td>
             <td>{person.number}</td>
+            <td><button onClick={() => onDelete(person)}>Delete</button></td>
           </tr>
         )}
       </tbody>
@@ -66,7 +67,18 @@ const App = ({ phones }) => {
     personService
       .create(person)
       .then(response => setPersons(persons.concat(response.data)))
-      .catch(_ => alert('Error adding person to phonebook. Please try again later.'));
+      .catch(_ => alert('Error adding person to phonebook. Please, try again later.'));
+  }
+
+  // Remove a person from the list
+  const removePerson = person => {
+    const result = window.confirm(`Delete ${person.name}?`);
+    if (!result) return;
+
+    personService
+      .remove(person.id)
+      .then(_ => setPersonsOriginal(persons.filter(p => p.id !== person.id)))
+      .catch(_ => alert('Error removing person from phonebook. Please, try again later.'));
   }
 
   return (
@@ -87,7 +99,7 @@ const App = ({ phones }) => {
 
       <h3>Numbers</h3>
 
-      <Persons filter={filter} persons={persons} />
+      <Persons filter={filter} persons={persons} onDelete={removePerson} />
     </div>
   )
 }

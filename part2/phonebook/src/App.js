@@ -1,76 +1,118 @@
-import React, { useState, useEffect } from 'react'
-import personService from './services/person'
+import React, { useState, useEffect } from "react";
+import personService from "./services/person";
+
+const Notification = ({ message }) => {
+  if (!message) return null;
+  return <div className="success">{message}</div>;
+};
 
 const Filter = ({ value, onChange }) => (
-  <form onSubmit={e => e.preventDefault()}>
-    <div>filter shown with: <input value={value} onChange={e => onChange(e.target.value)} /></div>
+  <form onSubmit={(e) => e.preventDefault()}>
+    <div>
+      filter shown with:{" "}
+      <input value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
   </form>
 );
 
-const PersonForm = ({ onSubmit, name, onChangeName, number, onChangeNumber }) => (
+const PersonForm = ({
+  onSubmit,
+  name,
+  onChangeName,
+  number,
+  onChangeNumber,
+}) => (
   <form onSubmit={onSubmit}>
-    <div>name: <input value={name} onChange={e => onChangeName(e.target.value)} /></div>
-    <div>number: <input value={number} onChange={e => onChangeNumber(e.target.value)} /></div>
-    <div><button type="submit">add</button></div>
+    <div>
+      name:{" "}
+      <input value={name} onChange={(e) => onChangeName(e.target.value)} />
+    </div>
+    <div>
+      number:{" "}
+      <input value={number} onChange={(e) => onChangeNumber(e.target.value)} />
+    </div>
+    <div>
+      <button type="submit">add</button>
+    </div>
   </form>
-)
+);
 
 const Persons = ({ filter, persons, onDelete }) => {
-  const personsFiltered = persons.filter(p =>
+  const personsFiltered = persons.filter((p) =>
     p.name.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
     <table>
       <tbody>
-        {personsFiltered.map(person =>
+        {personsFiltered.map((person) => (
           <tr key={person.id}>
             <td>{person.name}</td>
             <td>{person.number}</td>
-            <td><button onClick={() => onDelete(person)}>Delete</button></td>
+            <td>
+              <button onClick={() => onDelete(person)}>Delete</button>
+            </td>
           </tr>
-        )}
+        ))}
       </tbody>
     </table>
-  )
-}
+  );
+};
 
 const App = ({ phones }) => {
   // Initial state
   const [persons, setPersonsOriginal] = useState([]);
-  const [filter, setFilter] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newNumber, setNewNumber] = useState('');
+  const [filter, setFilter] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newNumber, setNewNumber] = useState("");
+  const [message, setMessageOriginal] = useState("");
 
-  const setPersons = (persons) => setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)))
+  // Persons are always displayed in order
+  const setPersons = (persons) =>
+    setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)));
+
+  // Messages ares displayed temporarily
+  const setMessage = (message) => {
+    setMessageOriginal(message);
+    setTimeout(() => setMessageOriginal(null), 5000);
+  };
 
   // Initial load from the server
   useEffect(() => {
-    personService
-      .getAll()
-      .then(({ data }) => setPersons(data));
+    personService.getAll().then(({ data }) => setPersons(data));
   }, []);
 
   // Add a new phone number to the list
-  const addPhone = event => {
+  const addPhone = (event) => {
     event.preventDefault();
 
     const person = {
       name: newName,
-      number: newNumber
+      number: newNumber,
     };
 
     const personMatch = persons.find(({ name }) => name === newName);
 
     // Already exists. Just edit it.
     if (personMatch) {
-      const shoudlReplace = window.confirm(`${person.name} is already added to phonebook, replace the old number with a new one?`);
+      const shoudlReplace = window.confirm(
+        `${person.name} is already added to phonebook, replace the old number with a new one?`
+      );
 
       if (shoudlReplace) {
         personService
           .update(personMatch.id, person)
-          .then(response => setPersons(persons.map(p => p.id === personMatch.id ? response.data : p)))
-          .catch(_ => alert('Error updating person in the phonebook. Please, try again later.'));
+          .then((response) => {
+            setPersons(
+              persons.map((p) => (p.id === personMatch.id ? response.data : p))
+            );
+            setMessage(`Updated ${response.data.name}`);
+          })
+          .catch((_) =>
+            alert(
+              "Error updating person in the phonebook. Please, try again later."
+            )
+          );
       }
 
       return;
@@ -79,24 +121,36 @@ const App = ({ phones }) => {
     // Doesn't exist. Add.
     personService
       .create(person)
-      .then(response => setPersons(persons.concat(response.data)))
-      .catch(_ => alert('Error adding person to phonebook. Please, try again later.'));
-  }
+      .then((response) => {
+        setPersons(persons.concat(response.data));
+        setMessage(`Added ${response.data.name}`);
+      })
+      .catch((_) =>
+        alert("Error adding person to phonebook. Please, try again later.")
+      );
+  };
 
   // Remove a person from the list
-  const removePerson = person => {
+  const removePerson = (person) => {
     const result = window.confirm(`Delete ${person.name}?`);
     if (!result) return;
 
     personService
       .remove(person.id)
-      .then(_ => setPersonsOriginal(persons.filter(p => p.id !== person.id)))
-      .catch(_ => alert('Error removing person from phonebook. Please, try again later.'));
-  }
+      .then((response) => {
+        setPersonsOriginal(persons.filter((p) => p.id !== person.id));
+        setMessage(`Deleted ${person.name}`);
+      })
+      .catch((_) =>
+        alert("Error removing person from phonebook. Please, try again later.")
+      );
+  };
 
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={message} />
 
       <Filter value={filter} onChange={setFilter} />
 
@@ -114,7 +168,7 @@ const App = ({ phones }) => {
 
       <Persons filter={filter} persons={persons} onDelete={removePerson} />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import personService from "./services/person";
 
-const Notification = ({ message }) => {
+const NotificationType = {
+  Success: "success",
+  Error: "error",
+};
+
+const Notification = ({ type, message }) => {
   if (!message) return null;
-  return <div className="success">{message}</div>;
+  return <div className={`notification ${type}`}>{message}</div>;
 };
 
 const Filter = ({ value, onChange }) => (
@@ -63,24 +68,45 @@ const App = ({ phones }) => {
   // Initial state
   const [persons, setPersonsOriginal] = useState([]);
   const [filter, setFilter] = useState("");
+
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
-  const [message, setMessageOriginal] = useState("");
+
+  const [message, setMessage] = useState("");
+  const [notificationType, setNotificationType] = useState(
+    NotificationType.Success
+  );
 
   // Persons are always displayed in order
   const setPersons = (persons) =>
     setPersonsOriginal(persons.sort((a, b) => a.name.localeCompare(b.name)));
 
-  // Messages ares displayed temporarily
-  const setMessage = (message) => {
-    setMessageOriginal(message);
-    setTimeout(() => setMessageOriginal(null), 5000);
+  // Notifications are displayed temporarily
+  const setNotification = (type, message) => {
+    setNotificationType(type);
+    setMessage(message);
+    setTimeout(() => setMessage(null), 5000);
   };
+
+  const setNotificationSuccess = (message) =>
+    setNotification(NotificationType.Success, message);
+
+  const setNotificationError = useCallback(
+    (message) => setNotification(NotificationType.Error, message),
+    []
+  );
 
   // Initial load from the server
   useEffect(() => {
-    personService.getAll().then(({ data }) => setPersons(data));
-  }, []);
+    personService
+      .getAll()
+      .then(({ data }) => setPersons(data))
+      .catch((_) =>
+        setNotificationError(
+          "Phonebook not available. Please, try again later."
+        )
+      );
+  }, [setNotificationError]);
 
   // Add a new phone number to the list
   const addPhone = (event) => {
@@ -106,11 +132,11 @@ const App = ({ phones }) => {
             setPersons(
               persons.map((p) => (p.id === personMatch.id ? response.data : p))
             );
-            setMessage(`Updated ${response.data.name}`);
+            setNotificationSuccess(`Updated ${response.data.name}`);
           })
           .catch((_) =>
-            alert(
-              "Error updating person in the phonebook. Please, try again later."
+            setNotificationError(
+              `Information of ${personMatch.name} has already been removed from the server`
             )
           );
       }
@@ -123,10 +149,12 @@ const App = ({ phones }) => {
       .create(person)
       .then((response) => {
         setPersons(persons.concat(response.data));
-        setMessage(`Added ${response.data.name}`);
+        setNotificationSuccess(`Added ${response.data.name}`);
       })
       .catch((_) =>
-        alert("Error adding person to phonebook. Please, try again later.")
+        setNotificationError(
+          "Error adding person to phonebook. Please, try again later."
+        )
       );
   };
 
@@ -137,12 +165,14 @@ const App = ({ phones }) => {
 
     personService
       .remove(person.id)
-      .then((response) => {
+      .then((_) => {
         setPersonsOriginal(persons.filter((p) => p.id !== person.id));
-        setMessage(`Deleted ${person.name}`);
+        setNotificationSuccess(`Deleted ${person.name}`);
       })
       .catch((_) =>
-        alert("Error removing person from phonebook. Please, try again later.")
+        setNotificationError(
+          `Information of ${person.name} has already been removed from the server`
+        )
       );
   };
 
@@ -150,7 +180,7 @@ const App = ({ phones }) => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={message} />
+      <Notification type={notificationType} message={message} />
 
       <Filter value={filter} onChange={setFilter} />
 

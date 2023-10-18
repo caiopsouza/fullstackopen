@@ -56,16 +56,33 @@ const App = () => {
     const [newNumber, setNewNumber] = useState('');
     const [nameFilter, setNameFilter] = useState('');
 
-    const addName = (event) => {
+    const handleAddPerson = (event) => {
         event.preventDefault();
 
-        if (persons.find(p => p.name === newName)) {
-            alert(`${newName} is already added to phonebook`);
+        const newPerson = {name: newName, number: newNumber};
+
+        const personInPhonebook = persons.find(p => p.name === newName);
+
+        if (personInPhonebook) {
+            const shouldUpdate = confirm(`${newName} is already added to phonebook, replace the old number with a new one?`);
+            if (shouldUpdate) {
+                phoneService.put(personInPhonebook.id, newPerson)
+                    .then(response => {
+                        setPersons(persons.map(person =>
+                            person.id === response.data.id ?
+                                response.data :
+                                person
+                        ));
+                    });
+
+                setNewName('');
+                setNewNumber('');
+            }
+
             return;
         }
 
-        const person = {name: newName, number: newNumber};
-        phoneService.post(person)
+        phoneService.post(newPerson)
             .then(response => {
                 console.log(response);
                 setPersons(persons.concat(response.data));
@@ -98,7 +115,7 @@ const App = () => {
 
         <h3>Add a new</h3>
         <PersonForm
-            addName={addName}
+            addName={handleAddPerson}
             newName={newName}
             setNewName={setNewName}
             newNumber={newNumber}

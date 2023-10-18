@@ -10,4 +10,8 @@ function post(person) {
     return axios.post(baseUrl, person)
 }
 
-export default {getAll, post};
+function remove(id) {
+    return axios.delete(`${baseUrl}/${id}`);
+}
+
+export default {getAll, post, remove};

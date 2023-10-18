@@ -34,7 +34,7 @@ const PersonForm = ({addName, newName, setNewName, newNumber, setNewNumber}) => 
     </>)
 }
 
-const Numbers = ({filter, persons}) => {
+const Numbers = ({filter, persons, handleDelete}) => {
     const filterUpper = filter.toUpperCase();
     const personsFiltered = filter ?
         persons.filter(p => p.name.toUpperCase().includes(filterUpper)) :
@@ -44,6 +44,7 @@ const Numbers = ({filter, persons}) => {
         {personsFiltered.map(p =>
             <div key={p.name}>
                 {p.name} {p.number}
+                <button onClick={() => handleDelete(p.id)}>delete</button>
             </div>)
         }
     </>);
@@ -79,6 +80,18 @@ const App = () => {
             .then(response => setPersons(response.data))
     }, []);
 
+    const handleDelete = (id) => {
+        const person = persons.find(person => person.id === id);
+        if (!window.confirm(`Delete ${person.name}?`))
+            return;
+
+        phoneService.remove(id)
+            .then(response => {
+                console.log(response);
+                setPersons(persons.filter(person => person.id !== id));
+            });
+    }
+
     return (<>
         <h2>Phonebook</h2>
         <Filter nameFilter={nameFilter} setNameFilter={setNameFilter}/>
@@ -92,7 +105,7 @@ const App = () => {
             setNewNumber={setNewNumber}/>
 
         <h3>Numbers</h3>
-        <Numbers filter={nameFilter} persons={persons}/>
+        <Numbers filter={nameFilter} persons={persons} handleDelete={handleDelete}/>
     </>);
 }
 

@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react'
 import phoneService from "./services/phoneService.js";
+import './index.css';
 
 const Filter = ({nameFilter, setNameFilter}) => {
     return (<>
@@ -50,11 +51,31 @@ const Numbers = ({filter, persons, handleDelete}) => {
     </>);
 }
 
+const Notification = ({message}) => {
+    if (message === null) {
+        return null;
+    }
+
+    return (
+        <div className='notification'>
+            {message}
+        </div>
+    )
+}
+
 const App = () => {
     const [persons, setPersons] = useState([]);
     const [newName, setNewName] = useState('');
     const [newNumber, setNewNumber] = useState('');
     const [nameFilter, setNameFilter] = useState('');
+    const [message, setMessage] = useState(null);
+
+    const setTemporaryMessage = (message) => {
+        setMessage(message);
+        setTimeout(() => {
+            setMessage(null);
+        }, 5000);
+    }
 
     const handleAddPerson = (event) => {
         event.preventDefault();
@@ -73,6 +94,8 @@ const App = () => {
                                 response.data :
                                 person
                         ));
+
+                        setTemporaryMessage(`Changed ${response.data.name}'s number`);
                     });
 
                 setNewName('');
@@ -84,11 +107,12 @@ const App = () => {
 
         phoneService.post(newPerson)
             .then(response => {
-                console.log(response);
                 setPersons(persons.concat(response.data));
 
                 setNewName('');
                 setNewNumber('');
+
+                setTemporaryMessage(`Added ${response.data.name}`);
             });
     }
 
@@ -111,6 +135,7 @@ const App = () => {
 
     return (<>
         <h2>Phonebook</h2>
+        <Notification message={message}/>
         <Filter nameFilter={nameFilter} setNameFilter={setNameFilter}/>
 
         <h3>Add a new</h3>

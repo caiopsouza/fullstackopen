@@ -52,13 +52,15 @@ const Numbers = ({filter, persons, handleDelete}) => {
 }
 
 const Notification = ({message}) => {
-    if (message === null) {
+    if (message.state === "no_message") {
         return null;
     }
 
+    const className = `notification ${message.state}`;
+
     return (
-        <div className='notification'>
-            {message}
+        <div className={className}>
+            {message.text}
         </div>
     )
 }
@@ -68,12 +70,14 @@ const App = () => {
     const [newName, setNewName] = useState('');
     const [newNumber, setNewNumber] = useState('');
     const [nameFilter, setNameFilter] = useState('');
-    const [message, setMessage] = useState(null);
 
-    const setTemporaryMessage = (message) => {
-        setMessage(message);
+    const no_message = {state: "no_message"};
+    const [message, setMessage] = useState(no_message);
+
+    const setTemporaryMessage = (state, text) => {
+        setMessage({state, text});
         setTimeout(() => {
-            setMessage(null);
+            setMessage(no_message);
         }, 5000);
     }
 
@@ -95,7 +99,10 @@ const App = () => {
                                 person
                         ));
 
-                        setTemporaryMessage(`Changed ${response.data.name}'s number`);
+                        setTemporaryMessage("success", `Changed ${response.data.name}'s number`);
+                    })
+                    .catch(() => {
+                        setTemporaryMessage("error", `Information of ${personInPhonebook.name} has already been removed from server`);
                     });
 
                 setNewName('');
@@ -112,7 +119,7 @@ const App = () => {
                 setNewName('');
                 setNewNumber('');
 
-                setTemporaryMessage(`Added ${response.data.name}`);
+                setTemporaryMessage("success", `Added ${response.data.name}`);
             });
     }
 
@@ -130,6 +137,7 @@ const App = () => {
             .then(response => {
                 console.log(response);
                 setPersons(persons.filter(person => person.id !== id));
+                setTemporaryMessage("success", `${person.name} has been deleted`);
             });
     }
 

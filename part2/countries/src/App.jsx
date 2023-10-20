@@ -1,19 +1,44 @@
 import {useEffect, useState} from "react";
 import axios from "axios";
+import weatherService from "./services/weatherService.js";
+
+function Weather({city, temp, icon, description, wind}) {
+    return (<>
+        <h2>Weather in {city}</h2>
+        <div>temperature {temp} Celcius</div>
+        <img alt={description} src={icon}/>
+        <div>wind {Math.round(wind * 100) / 100} m/s</div>
+    </>);
+}
 
 function Country({country, onBackPressed}) {
+    const [weather, setWeather] = useState(null);
+
     const languages = Object.keys(country.languages).map(key => country.languages[key]);
     languages.sort();
+
+    useEffect(() => {
+        const capital = country.capital[0];
+        weatherService.getWeatherInCity(capital, response => {
+            setWeather({city: capital, ...response});
+        });
+
+        return () => setWeather(null);
+
+    }, [country]);
 
     return (<div>
         <h1>{country.name.common}</h1>
         <div>capital {country.capital.join(', ')}</div>
         <div>area {country.area}</div>
-        <h2>Languages</h2>
+        <h3>Languages</h3>
         <ul>
             {languages.map(language => <li key={language}>{language}</li>)}
         </ul>
         <img alt={country.flags.alt} src={country.flags.svg} height="150px"/>
+        {weather ?
+            <Weather {...weather}/> :
+            <div>Loading weather...</div>}
         {onBackPressed && <div>
             <button onClick={onBackPressed}>back</button>
         </div>}

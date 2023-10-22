@@ -1,2 +1,2 @@
-# fullstackopen
-Full Stack open submission exercises
+# Full Stack Open
+Full Stack Open submission exercises
